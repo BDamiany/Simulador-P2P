@@ -1,7 +1,5 @@
 # Simulador de Busca em Redes P2P Não Estruturadas
 
----
-
 ## Autores
 * Brenno Damiany Castro Vidal - 2315088
 * Caio Victor Ferreira Da Silva - 2010224
