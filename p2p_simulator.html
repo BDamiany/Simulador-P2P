@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de Rede P2P Não Estruturada</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;color:#1a1a18;background:#f5f4f0;min-height:100vh}
+header{background:#fff;border-bottom:1px solid #e0dfd8;padding:14px 24px;display:flex;align-items:center;gap:12px}
+header h1{font-size:17px;font-weight:600;color:#1a1a18}
+header span{font-size:12px;color:#888;background:#f0efe8;padding:2px 8px;border-radius:4px}
+.container{max-width:900px;margin:0 auto;padding:20px 16px}
+.tabs{display:flex;gap:2px;border-bottom:1.5px solid #e0dfd8;margin-bottom:20px}
+.tab{padding:9px 18px;cursor:pointer;font-size:13px;font-weight:500;color:#888;border-bottom:2.5px solid transparent;margin-bottom:-1.5px;transition:all .15s;border-radius:4px 4px 0 0}
+.tab:hover{color:#1a1a18;background:#f0efe8}
+.tab.active{color:#1a1a18;border-bottom-color:#1a1a18;background:#fff}
+.panel{display:none}.panel.active{display:block}
+h2{font-size:15px;font-weight:600;margin-bottom:12px;color:#1a1a18}
+h3{font-size:13px;font-weight:600;margin-bottom:8px;color:#444}
+textarea{width:100%;height:230px;font-family:"Courier New",Courier,monospace;font-size:12px;padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafaf8;color:#1a1a18;resize:vertical;line-height:1.6}
+textarea:focus{outline:none;border-color:#888}
+button{cursor:pointer;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;transition:all .15s}
+.btn-primary{background:#1a1a18;color:#fff;border:none}
+.btn-primary:hover{background:#333}
+.btn-secondary{background:#fff;border:1px solid #ddd;color:#1a1a18}
+.btn-secondary:hover{background:#f0efe8;border-color:#bbb}
+select,input[type=text],input[type=number]{padding:7px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a18;font-size:13px;outline:none}
+select:focus,input:focus{border-color:#888}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;line-height:1.5}
+.alert-error{background:#fff0f0;color:#a32d2d;border:1px solid #f7c1c1}
+.alert-success{background:#eaf3de;color:#27500a;border:1px solid #c0dd97}
+.alert-info{background:#e6f1fb;color:#0c447c;border:1px solid #b5d4f4}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric-card{background:#fff;border:1px solid #e0dfd8;border-radius:10px;padding:14px;text-align:center}
+.metric-val{font-size:24px;font-weight:600;color:#1a1a18}
+.metric-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+.row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;color:#888;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+canvas{border:1px solid #e0dfd8;border-radius:10px;display:block;width:100%;background:#fff}
+.log-box{background:#fafaf8;border:1px solid #e0dfd8;border-radius:8px;height:200px;overflow-y:auto;padding:12px;font-family:"Courier New",monospace;font-size:11.5px;color:#666;line-height:1.7}
+.log-box p{margin:0}
+.log-msg{color:#185fa5}
+.log-found{color:#3b6d11;font-weight:600}
+.log-fail{color:#a32d2d;font-weight:600}
+.log-sys{color:#999;font-style:italic}
+.compare-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px}
+.compare-table th,.compare-table td{padding:9px 14px;border:1px solid #e0dfd8;text-align:left}
+.compare-table th{background:#f5f4f0;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:#666}
+.compare-table tbody tr:hover td{background:#f9f8f5}
+.badge{display:inline-block;padding:2px 9px;border-radius:4px;font-size:11px;font-weight:600}
+.badge-green{background:#eaf3de;color:#27500a}
+.badge-red{background:#fff0f0;color:#a32d2d}
+.badge-blue{background:#e6f1fb;color:#0c447c}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#666}
+.legend-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+.section{margin-bottom:22px}
+.card{background:#fff;border:1px solid #e0dfd8;border-radius:12px;padding:18px;margin-bottom:16px}
+.algo-desc{font-size:12px;color:#888;margin-top:4px;line-height:1.5}
+.bar-bg{height:7px;background:#e8e8e4;border-radius:4px;width:100%;margin-top:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s}
+.example-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+@media(max-width:600px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4M5 17l5-4M19 17l-5-4"/></svg>
+  <h1>Simulador de Rede P2P Não Estruturada</h1>
+  <span>flooding · random walk · informed</span>
+</header>
+
+<div class="container">
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('config')">⚙ Configuração</div>
+  <div class="tab" onclick="switchTab('search')">🔍 Busca</div>
+  <div class="tab" onclick="switchTab('visual')">🗺 Visualização</div>
+  <div class="tab" onclick="switchTab('compare')">📊 Comparação</div>
+</div>
+
+<!-- ===== CONFIG ===== -->
+<div class="panel active" id="tab-config">
+  <div class="card">
+    <h2>Arquivo de Configuração</h2>
+    <p style="font-size:12px;color:#888;margin-bottom:12px">
+      Formato aceito: YAML com campos <code>num_nodes</code>, <code>min_neighbors</code>, <code>max_neighbors</code>, <code>resources</code> e <code>edges</code>.
+    </p>
+    <div class="example-btns">
+      <button class="btn-secondary" onclick="loadExample('small')">📦 Exemplo pequeno (6 nós)</button>
+      <button class="btn-secondary" onclick="loadExample('medium')">📦 Exemplo médio (10 nós)</button>
+      <button class="btn-secondary" onclick="loadExample('large')">📦 Exemplo grande (14 nós)</button>
+      <button class="btn-secondary" onclick="loadExample('ring')">🔁 Topologia em anel (8 nós)</button>
+      <button class="btn-secondary" onclick="loadExample('star')">⭐ Topologia estrela (7 nós)</button>
+    </div>
+    <textarea id="config-input" placeholder="Cole aqui o arquivo de configuração YAML..."></textarea>
+    <div class="row" style="margin-top:12px">
+      <button class="btn-primary" onclick="parseAndValidate()">✓ Carregar e validar</button>
+      <button class="btn-secondary" onclick="clearAll()">✕ Limpar</button>
+    </div>
+    <div id="config-status" style="margin-top:14px"></div>
+  </div>
+
+  <div id="network-info" style="display:none" class="card">
+    <h2>Informações da rede carregada</h2>
+    <div class="grid-4">
+      <div class="metric-card"><div class="metric-val" id="inf-nodes">-</div><div class="metric-lbl">Nós</div></div>
+      <div class="metric-card"><div class="metric-val" id="inf-edges">-</div><div class="metric-lbl">Arestas</div></div>
+      <div class="metric-card"><div class="metric-val" id="inf-resources">-</div><div class="metric-lbl">Recursos únicos</div></div>
+      <div class="metric-card"><div class="metric-val" id="inf-avgdeg">-</div><div class="metric-lbl">Grau médio</div></div>
+    </div>
+    <div id="node-list" style="margin-top:14px;font-size:12px;color:#666;line-height:1.9"></div>
+  </div>
+</div>
+
+<!-- ===== SEARCH ===== -->
+<div class="panel" id="tab-search">
+  <div id="no-net-search" class="alert alert-info">⚠ Carregue e valide uma configuração de rede na aba <strong>Configuração</strong> primeiro.</div>
+  <div id="search-form" style="display:none">
+    <div class="card">
+      <h2>Parâmetros de busca</h2>
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>node_id — nó que inicia a busca</label>
+          <select id="s-node" style="width:100%"></select>
+        </div>
+        <div class="field">
+          <label>resource_id — recurso a ser buscado</label>
+          <select id="s-resource" style="width:100%"></select>
+        </div>
+        <div class="field">
+          <label>ttl — time to live</label>
+          <input type="number" id="s-ttl" value="5" min="1" max="20" style="width:100%">
+        </div>
+        <div class="field">
+          <label>algo — algoritmo de busca</label>
+          <select id="s-algo" style="width:100%" onchange="updateAlgoDesc()">
+            <option value="flooding">flooding</option>
+            <option value="informed_flooding">informed_flooding</option>
+            <option value="random_walk">random_walk</option>
+            <option value="informed_random_walk">informed_random_walk</option>
+          </select>
+        </div>
+      </div>
+      <div class="algo-desc" id="algo-desc">Inunda a rede enviando mensagens para todos os vizinhos não visitados (BFS). Garante encontrar o recurso se existir dentro do TTL, mas gera muitas mensagens.</div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn-primary" onclick="runSearch()">▶ Executar busca</button>
+        <button class="btn-secondary" onclick="runAllAlgos()">⚡ Comparar todos os algoritmos</button>
+      </div>
+    </div>
+
+    <div id="search-result" style="display:none" class="card">
+      <h2>Resultado da busca</h2>
+      <div class="grid-3" style="margin-bottom:14px">
+        <div class="metric-card"><div class="metric-val" id="r-msgs">-</div><div class="metric-lbl">Mensagens trocadas</div></div>
+        <div class="metric-card"><div class="metric-val" id="r-nodes">-</div><div class="metric-lbl">Nós envolvidos</div></div>
+        <div class="metric-card" id="r-found-card"><div class="metric-val" id="r-found">-</div><div class="metric-lbl">Status</div></div>
+      </div>
+      <h3>Log de mensagens</h3>
+      <div class="log-box" id="search-log"></div>
+      <div style="margin-top:10px;font-size:12px;color:#888">
+        A animação da busca está disponível na aba <strong>Visualização</strong>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VISUAL ===== -->
+<div class="panel" id="tab-visual">
+  <div id="no-net-visual" class="alert alert-info">⚠ Carregue e valide uma configuração de rede na aba <strong>Configuração</strong> primeiro.</div>
+  <div id="visual-area" style="display:none">
+    <div class="card">
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#378ADD"></div>nó normal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#EF9F27"></div>origem da busca</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div>nó visitado</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>recurso encontrado</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#888780"></div>nó não visitado</div>
+      </div>
+      <canvas id="net-canvas" width="860" height="440"></canvas>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn-secondary" onclick="replayAnimation()">↺ Reanimar última busca</button>
+        <button class="btn-secondary" onclick="resetVisual()">⬜ Resetar cores</button>
+        <span style="font-size:12px;color:#888;flex:1" id="anim-status"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COMPARE ===== -->
+<div class="panel" id="tab-compare">
+  <div id="no-net-compare" class="alert alert-info">⚠ Carregue e valide uma configuração de rede na aba <strong>Configuração</strong> primeiro.</div>
+  <div id="compare-area" style="display:none">
+    <div class="card">
+      <h2>Configuração da comparação</h2>
+      <div class="row">
+        <div class="field">
+          <label>nó origem</label>
+          <select id="c-node"></select>
+        </div>
+        <div class="field">
+          <label>recurso buscado</label>
+          <select id="c-resource"></select>
+        </div>
+        <div class="field">
+          <label>TTL</label>
+          <input type="number" id="c-ttl" value="6" min="1" max="20" style="width:80px">
+        </div>
+        <div class="field" style="justify-content:flex-end">
+          <button class="btn-primary" onclick="runComparison()">⚡ Comparar algoritmos</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="compare-results" style="display:none">
+      <div class="card">
+        <h2>Tabela comparativa</h2>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Algoritmo</th>
+              <th>Mensagens trocadas</th>
+              <th>Nós visitados</th>
+              <th>Encontrou?</th>
+              <th>Nó com recurso</th>
+            </tr>
+          </thead>
+          <tbody id="compare-tbody"></tbody>
+        </table>
+        <p style="font-size:11px;color:#aaa">* Barras proporcionais ao máximo entre os algoritmos.</p>
+      </div>
+      <div class="card">
+        <h2>Gráfico comparativo</h2>
+        <canvas id="compare-chart" width="860" height="240"></canvas>
+      </div>
+      <div id="compare-history-card" style="display:none" class="card">
+        <h2>Histórico de comparações</h2>
+        <div id="compare-history-list" style="font-size:12px;color:#666;line-height:2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// ========== STATE ==========
+let network = null;
+let lastSearchResult = null;
+let lastSearchStart = null;
+let animationTimer = null;
+let nodeColors = {};
+let activeEdges = {};
+
+// ========== EXAMPLES ==========
+const EXAMPLES = {
+small:`num_nodes: 6
+min_neighbors: 2
+max_neighbors: 4
+resources:
+  n1: r1, r2
+  n2: r3
+  n3: r4, r5
+  n4: r6
+  n5: r1, r7
+  n6: r8, r9
+edges:
+  n1, n2
+  n1, n3
+  n2, n3
+  n2, n4
+  n3, n5
+  n4, n5
+  n4, n6
+  n5, n6`,
+medium:`num_nodes: 10
+min_neighbors: 2
+max_neighbors: 5
+resources:
+  n1: r1, r2, r3
+  n2: r4, r5
+  n3: r6
+  n4: r7, r8
+  n5: r9
+  n6: r10, r11
+  n7: r12
+  n8: r13, r14
+  n9: r15
+  n10: r16, r17
+edges:
+  n1, n2
+  n1, n3
+  n1, n4
+  n2, n3
+  n2, n5
+  n3, n6
+  n4, n5
+  n4, n7
+  n5, n6
+  n5, n8
+  n6, n9
+  n7, n8
+  n8, n9
+  n8, n10
+  n9, n10`,
+large:`num_nodes: 14
+min_neighbors: 2
+max_neighbors: 5
+resources:
+  n1: r1, r2
+  n2: r3, r4
+  n3: r5
+  n4: r6, r7
+  n5: r8, r9
+  n6: r10
+  n7: r11, r12
+  n8: r13
+  n9: r14, r15
+  n10: r16
+  n11: r17, r18
+  n12: r19
+  n13: r20, r21
+  n14: r22
+edges:
+  n1, n2
+  n1, n3
+  n2, n4
+  n2, n5
+  n3, n4
+  n3, n6
+  n4, n7
+  n5, n6
+  n5, n8
+  n6, n9
+  n7, n8
+  n7, n10
+  n8, n11
+  n9, n10
+  n9, n12
+  n10, n13
+  n11, n12
+  n11, n14
+  n12, n13
+  n13, n14`,
+ring:`num_nodes: 8
+min_neighbors: 2
+max_neighbors: 3
+resources:
+  n1: r1, r2
+  n2: r3
+  n3: r4, r5
+  n4: r6
+  n5: r7
+  n6: r8, r9
+  n7: r10
+  n8: r11, r12
+edges:
+  n1, n2
+  n2, n3
+  n3, n4
+  n4, n5
+  n5, n6
+  n6, n7
+  n7, n8
+  n8, n1
+  n1, n5`,
+star:`num_nodes: 7
+min_neighbors: 1
+max_neighbors: 6
+resources:
+  n1: r1, r2, r3
+  n2: r4
+  n3: r5, r6
+  n4: r7
+  n5: r8
+  n6: r9, r10
+  n7: r11
+edges:
+  n1, n2
+  n1, n3
+  n1, n4
+  n1, n5
+  n1, n6
+  n1, n7`
+};
+
+function loadExample(k){ document.getElementById('config-input').value = EXAMPLES[k]; }
+function clearAll(){
+  document.getElementById('config-input').value='';
+  document.getElementById('config-status').innerHTML='';
+  document.getElementById('network-info').style.display='none';
+  network=null; updateSearchUI();
+}
+
+// ========== TAB ==========
+function switchTab(tab){
+  const names=['config','search','visual','compare'];
+
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active', names[i]===tab);
+  });
+
+  document.querySelectorAll('.panel').forEach(p=>{
+    p.classList.toggle('active', p.id === 'tab-' + tab);
+  });
+
+  if(tab==='visual' && network){
+    drawNetwork();
+  }
+
+  if(tab==='compare' && network){
+    populateCompareSelects();
+    document.getElementById('compare-area').style.display='block';
+    document.getElementById('no-net-compare').style.display='none';
+  }
+}
+
+// ========== PARSER ==========
+function parseYAML(text){
+  const lines = text.split('\n');
+  const result = { num_nodes:0, min_neighbors:1, max_neighbors:10, resources:{}, edges:[] };
+  let section = null;
+  for(let raw of lines){
+    const line = raw.trim();
+    if(!line || line.startsWith('#')) continue;
+    if(/^num_nodes\s*:/.test(line)){ result.num_nodes=parseInt(line.split(':')[1]); continue; }
+    if(/^min_neighbors\s*:/.test(line)){ result.min_neighbors=parseInt(line.split(':')[1]); continue; }
+    if(/^max_neighbors\s*:/.test(line)){ result.max_neighbors=parseInt(line.split(':')[1]); continue; }
+    if(/^resources\s*:/.test(line)){ section='resources'; continue; }
+    if(/^edges\s*:/.test(line)){ section='edges'; continue; }
+    if(section==='resources' && line.includes(':')){
+      const colon = line.indexOf(':');
+      const node = line.slice(0,colon).trim();
+      const res = line.slice(colon+1).split(',').map(r=>r.trim()).filter(Boolean);
+      result.resources[node] = res;
+    }
+    if(section==='edges' && line.includes(',')){
+      const parts = line.split(',').map(s=>s.trim()).filter(Boolean);
+      if(parts.length>=2) result.edges.push([parts[0],parts[1]]);
+    }
+  }
+  return result;
+}
+
+function buildNetwork(cfg){
+  const nodes={};
+  const edgeSet={};
+  Object.keys(cfg.resources).forEach(id=>{
+    nodes[id]={id, resources:[...cfg.resources[id]], neighbors:[]};
+  });
+  for(const [a,b] of cfg.edges){
+    if(!nodes[a]) throw new Error(`Aresta inválida: nó "${a}" não definido em resources`);
+    if(!nodes[b]) throw new Error(`Aresta inválida: nó "${b}" não definido em resources`);
+    if(a===b) throw new Error(`Aresta de um nó para ele mesmo: ${a}`);
+    const key=[a,b].sort().join('__');
+    if(!edgeSet[key]){ edgeSet[key]=true; nodes[a].neighbors.push(b); nodes[b].neighbors.push(a); }
+  }
+  return { nodes, cfg, edgeKeys:Object.keys(edgeSet) };
+}
+
+function validate(net){
+  const {nodes,cfg}=net;
+  const errors=[];
+  const ids=Object.keys(nodes);
+  if(ids.length===0){ errors.push('Nenhum nó definido em resources.'); return errors; }
+  for(const id of ids){
+    const deg=nodes[id].neighbors.length;
+    if(deg<cfg.min_neighbors) errors.push(`Nó <strong>${id}</strong> tem ${deg} vizinhos (mínimo: ${cfg.min_neighbors})`);
+    if(deg>cfg.max_neighbors) errors.push(`Nó <strong>${id}</strong> tem ${deg} vizinhos (máximo: ${cfg.max_neighbors})`);
+    if(!nodes[id].resources||nodes[id].resources.length===0) errors.push(`Nó <strong>${id}</strong> não possui nenhum recurso`);
+  }
+  // Connectivity BFS
+  const visited=new Set([ids[0]]);
+  const queue=[ids[0]];
+  while(queue.length){ const cur=queue.shift(); for(const nb of nodes[cur].neighbors){ if(!visited.has(nb)){visited.add(nb);queue.push(nb);} } }
+  if(visited.size<ids.length){
+    const missing=ids.filter(x=>!visited.has(x));
+    errors.push(`Rede particionada! Nós inacessíveis: <strong>${missing.join(', ')}</strong>`);
+  }
+  return errors;
+}
+
+function parseAndValidate(){
+  const text=document.getElementById('config-input').value.trim();
+  if(!text){ setStatus('error','Campo de configuração vazio.'); return; }
+  try{
+    const cfg=parseYAML(text);
+    const net=buildNetwork(cfg);
+    const errors=validate(net);
+    if(errors.length){
+      setStatus('error','<strong>Erros de validação encontrados:</strong><ul style="margin:8px 0 0 18px;line-height:2">'+errors.map(e=>`<li>${e}</li>`).join('')+'</ul>');
+      return;
+    }
+    network=net;
+    computePositions();
+    const ids=Object.keys(net.nodes);
+    const allRes=[...new Set(ids.flatMap(id=>net.nodes[id].resources))];
+    const avgDeg=(ids.reduce((s,id)=>s+net.nodes[id].neighbors.length,0)/ids.length).toFixed(1);
+    document.getElementById('inf-nodes').textContent=ids.length;
+    document.getElementById('inf-edges').textContent=cfg.edges.length;
+    document.getElementById('inf-resources').textContent=allRes.length;
+    document.getElementById('inf-avgdeg').textContent=avgDeg;
+    document.getElementById('node-list').innerHTML='<strong>Recursos por nó:</strong> '+ids.map(id=>`<span style="display:inline-block;background:#f0efe8;border:1px solid #ddd;border-radius:5px;padding:1px 8px;margin:2px;font-size:11.5px">${id}: ${net.nodes[id].resources.join(', ')}</span>`).join('');
+    document.getElementById('network-info').style.display='block';
+    setStatus('success',`✓ Rede válida! ${ids.length} nós, ${cfg.edges.length} arestas, ${allRes.length} recursos únicos, grau médio ${avgDeg}.`);
+    updateSearchUI();
+  }catch(e){ setStatus('error','Erro ao processar: '+e.message); }
+}
+
+function setStatus(type,html){
+  document.getElementById('config-status').innerHTML=`<div class="alert alert-${type==='error'?'error':'success'}">${html}</div>`;
+}
+
+function updateSearchUI(){
+  const has=!!network;
+  document.getElementById('no-net-search').style.display=has?'none':'block';
+  document.getElementById('search-form').style.display=has?'block':'none';
+  document.getElementById('no-net-visual').style.display=has?'none':'block';
+  document.getElementById('visual-area').style.display=has?'block':'none';
+  if(!has) return;
+  const ids=Object.keys(network.nodes);
+  const allRes=[...new Set(ids.flatMap(id=>network.nodes[id].resources))].sort();
+  ['s-node','c-node'].forEach(sel=>{ document.getElementById(sel).innerHTML=ids.map(n=>`<option>${n}</option>`).join(''); });
+  ['s-resource','c-resource'].forEach(sel=>{ document.getElementById(sel).innerHTML=allRes.map(r=>`<option>${r}</option>`).join(''); });
+  updateAlgoDesc();
+  drawNetwork();
+}
+
+// ========== LAYOUT ==========
+function computePositions(){
+  if(!network) return;
+  const ids=Object.keys(network.nodes);
+  const n=ids.length;
+  const canvas=document.getElementById('net-canvas');
+  const W=canvas?canvas.width:860, H=canvas?canvas.height:440;
+  const cx=W/2, cy=H/2;
+  const r=Math.min(cx-60, cy-60, 40+n*12);
+  ids.forEach((id,i)=>{
+    const angle=(2*Math.PI*i/n)-Math.PI/2;
+    network.nodes[id].x=cx+r*Math.cos(angle);
+    network.nodes[id].y=cy+r*Math.sin(angle);
+  });
+}
+
+// ========== DRAW ==========
+function drawNetwork(){
+  const canvas=document.getElementById('net-canvas');
+  if(!canvas||!network) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,W,H);
+  const nodes=network.nodes;
+  // Edges
+  const drawn=new Set();
+  for(const id of Object.keys(nodes)){
+    for(const nb of nodes[id].neighbors){
+      const key=[id,nb].sort().join('__');
+      if(drawn.has(key)) continue; drawn.add(key);
+      const isActive=activeEdges[key];
+      ctx.beginPath();
+      ctx.moveTo(nodes[id].x,nodes[id].y);
+      ctx.lineTo(nodes[nb].x,nodes[nb].y);
+      ctx.strokeStyle=isActive?'#EF9F27':'rgba(80,80,80,0.15)';
+      ctx.lineWidth=isActive?2.5:1;
+      ctx.stroke();
+    }
+  }
+  // Nodes
+  for(const id of Object.keys(nodes)){
+    const {x,y}=nodes[id];
+    const col=nodeColors[id]||'#378ADD';
+    // Shadow
+    ctx.beginPath(); ctx.arc(x,y+2,19,0,2*Math.PI);
+    ctx.fillStyle='rgba(0,0,0,0.07)'; ctx.fill();
+    // Circle
+    ctx.beginPath(); ctx.arc(x,y,18,0,2*Math.PI);
+    ctx.fillStyle=col; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=2; ctx.stroke();
+    // Node label
+    ctx.fillStyle='#fff';
+    ctx.font='bold 10.5px -apple-system,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(id,x,y);
+    // Resource count
+    const rc=nodes[id].resources.length;
+    ctx.fillStyle='#888';
+    ctx.font='9.5px -apple-system,sans-serif';
+    ctx.fillText(`[${rc}r]`,x,y+27);
+  }
+}
+
+// ========== ALGORITHMS ==========
+function flooding(net,start,res,ttl){
+  const nodes=net.nodes;
+  const log=[]; let msgs=0;
+  const visited=new Set([start]);
+  const animFrames=[]; const activeE={};
+  const queue=[{node:start,ttl}];
+  let found=null;
+  log.push({type:'sys',text:`Flooding iniciado em ${start} buscando "${res}" com TTL=${ttl}`});
+  while(queue.length&&!found){
+    const {node,ttl:t}=queue.shift();
+    if(nodes[node].resources.includes(res)){
+      found=node;
+      log.push({type:'found',text:`✓ Recurso "${res}" encontrado em ${node}!`});
+      animFrames.push({node,edge:null,type:'found'});
+      break;
+    }
+    if(t<=0) continue;
+    for(const nb of nodes[node].neighbors){
+      if(!visited.has(nb)){
+        visited.add(nb); msgs++;
+        const ek=[node,nb].sort().join('__'); activeE[ek]=true;
+        log.push({type:'msg',text:`  [MSG #${msgs}] ${node} → ${nb} (TTL=${t-1}) query:"${res}"`});
+        animFrames.push({node:nb,edge:ek,type:'visit',from:node});
+        queue.push({node:nb,ttl:t-1});
+      }
+    }
+  }
+  if(!found) log.push({type:'fail',text:`✗ Recurso "${res}" não encontrado (TTL esgotado ou rede esgotada)`});
+  return {found,msgs,visitedNodes:visited.size,log,animFrames,activeEdges:activeE};
+}
+
+function informedFlooding(net,start,res,ttl){
+  const nodes=net.nodes;
+  const log=[]; let msgs=0;
+  const visited=new Set([start]);
+  const animFrames=[]; const activeE={};
+  const queue=[{node:start,ttl}];
+  let found=null;
+  log.push({type:'sys',text:`Informed Flooding iniciado em ${start} buscando "${res}" com TTL=${ttl}`});
+  while(queue.length&&!found){
+    const {node,ttl:t}=queue.shift();
+    if(nodes[node].resources.includes(res)){
+      found=node;
+      log.push({type:'found',text:`✓ Recurso "${res}" encontrado em ${node}! (informed flooding)`});
+      animFrames.push({node,edge:null,type:'found'});
+      break;
+    }
+    if(t<=0) continue;
+    // Heuristic: sort by resource count desc (more resources = more likely to have what we want)
+    const sorted=[...nodes[node].neighbors].sort((a,b)=>(nodes[b]?.resources.length||0)-(nodes[a]?.resources.length||0));
+    for(const nb of sorted){
+      if(!visited.has(nb)){
+        visited.add(nb); msgs++;
+        const ek=[node,nb].sort().join('__'); activeE[ek]=true;
+        log.push({type:'msg',text:`  [MSG #${msgs}] ${node} → ${nb} (TTL=${t-1}, prioridade por recursos) query:"${res}"`});
+        animFrames.push({node:nb,edge:ek,type:'visit',from:node});
+        queue.push({node:nb,ttl:t-1});
+      }
+    }
+  }
+  if(!found) log.push({type:'fail',text:`✗ Recurso "${res}" não encontrado`});
+  return {found,msgs,visitedNodes:visited.size,log,animFrames,activeEdges:activeE};
+}
+
+function randomWalk(net,start,res,ttl){
+  const nodes=net.nodes;
+  const log=[]; let msgs=0;
+  const visited=new Set([start]);
+  const animFrames=[]; const activeE={};
+  let cur=start, found=null, t=ttl;
+  log.push({type:'sys',text:`Random Walk iniciado em ${start} buscando "${res}" com TTL=${ttl}`});
+  while(t>0&&!found){
+    if(nodes[cur].resources.includes(res)){
+      found=cur;
+      log.push({type:'found',text:`✓ Recurso "${res}" encontrado em ${cur}!`});
+      animFrames.push({node:cur,edge:null,type:'found'});
+      break;
+    }
+    const nbs=nodes[cur].neighbors;
+    const next=nbs[Math.floor(Math.random()*nbs.length)];
+    msgs++;
+    visited.add(next);
+    const ek=[cur,next].sort().join('__'); activeE[ek]=true;
+    log.push({type:'msg',text:`  [MSG #${msgs}] WALK ${cur} → ${next} (TTL=${t-1})`});
+    animFrames.push({node:next,edge:ek,type:'visit',from:cur});
+    cur=next; t--;
+  }
+  if(!found&&nodes[cur].resources.includes(res)){
+    found=cur;
+    log.push({type:'found',text:`✓ Recurso "${res}" encontrado em ${cur}!`});
+  }
+  if(!found) log.push({type:'fail',text:`✗ Recurso "${res}" não encontrado após passeio aleatório`});
+  return {found,msgs,visitedNodes:visited.size,log,animFrames,activeEdges:activeE};
+}
+
+function informedRandomWalk(net,start,res,ttl){
+  const nodes=net.nodes;
+  const log=[]; let msgs=0;
+  const visited=new Set([start]);
+  const seenNodes=new Set([start]);
+  const animFrames=[]; const activeE={};
+  let cur=start, found=null, t=ttl;
+  log.push({type:'sys',text:`Informed Random Walk iniciado em ${start} buscando "${res}" com TTL=${ttl}`});
+  while(t>0&&!found){
+    if(nodes[cur].resources.includes(res)){
+      found=cur;
+      log.push({type:'found',text:`✓ Recurso "${res}" encontrado em ${cur}! (informed random walk)`});
+      animFrames.push({node:cur,edge:null,type:'found'});
+      break;
+    }
+    const nbs=nodes[cur].neighbors;
+    // Heuristic: prefer unvisited first, then by resource count
+    const sorted=[...nbs].sort((a,b)=>{
+      const av=seenNodes.has(a)?1:0, bv=seenNodes.has(b)?1:0;
+      if(av!==bv) return av-bv;
+      return (nodes[b]?.resources.length||0)-(nodes[a]?.resources.length||0);
+    });
+    const next=sorted[0];
+    seenNodes.add(next);
+    msgs++;
+    visited.add(next);
+    const ek=[cur,next].sort().join('__'); activeE[ek]=true;
+    log.push({type:'msg',text:`  [MSG #${msgs}] WALK* ${cur} → ${next} (TTL=${t-1}, heurística: não visitado+mais recursos)`});
+    animFrames.push({node:next,edge:ek,type:'visit',from:cur});
+    cur=next; t--;
+  }
+  if(!found&&nodes[cur].resources.includes(res)){
+    found=cur;
+    log.push({type:'found',text:`✓ Recurso "${res}" encontrado em ${cur}!`});
+  }
+  if(!found) log.push({type:'fail',text:`✗ Recurso "${res}" não encontrado`});
+  return {found,msgs,visitedNodes:visited.size,log,animFrames,activeEdges:activeE};
+}
+
+const ALGOS={flooding,informed_flooding:informedFlooding,random_walk:randomWalk,informed_random_walk:informedRandomWalk};
+const ALGO_DESCS={
+  flooding:'Inunda a rede enviando mensagens para <strong>todos</strong> os vizinhos não visitados (BFS). Garante encontrar o recurso se ele existir dentro do TTL, mas gera muitas mensagens.',
+  informed_flooding:'Igual ao flooding, mas os vizinhos são ordenados por número de recursos (heurística: nó com mais recursos provavelmente tem o que buscamos). Menor número esperado de mensagens.',
+  random_walk:'Caminha aleatoriamente pela rede, enviando <strong>apenas 1 mensagem</strong> por passo. Muito eficiente em mensagens, mas não garante encontrar o recurso.',
+  informed_random_walk:'Passeio aleatório que <strong>prefere nós não visitados</strong> e, entre eles, os com mais recursos. Equilíbrio entre eficiência e probabilidade de sucesso.'
+};
+
+function updateAlgoDesc(){
+  const algo=document.getElementById('s-algo').value;
+  document.getElementById('algo-desc').innerHTML=ALGO_DESCS[algo]||'';
+}
+
+function runSearch(){
+  if(!network) return;
+  const nodeId=document.getElementById('s-node').value;
+  const resId=document.getElementById('s-resource').value;
+  const ttl=parseInt(document.getElementById('s-ttl').value)||5;
+  const algo=document.getElementById('s-algo').value;
+  const result=ALGOS[algo](network,nodeId,resId,ttl);
+  lastSearchResult=result; lastSearchStart=nodeId;
+  displayResult(result,nodeId,algo,resId,ttl);
+  animateSearch(result,nodeId);
+}
+
+function displayResult(result,start,algo,res,ttl){
+  const {found,msgs,visitedNodes,log}=result;
+  document.getElementById('search-result').style.display='block';
+  document.getElementById('r-msgs').textContent=msgs;
+  document.getElementById('r-nodes').textContent=visitedNodes;
+  const fe=document.getElementById('r-found');
+  const fc=document.getElementById('r-found-card');
+  if(found){ fe.textContent='✓ encontrado'; fe.style.color='#27500a'; fc.style.background='#eaf3de'; }
+  else { fe.textContent='✗ não encontrado'; fe.style.color='#a32d2d'; fc.style.background='#fff0f0'; }
+  const logEl=document.getElementById('search-log');
+  logEl.innerHTML=`<p class="log-sys">— Algoritmo: ${algo} | origem: ${start} | recurso: ${res} | TTL: ${ttl} —</p>`+
+    log.map(l=>`<p class="log-${l.type}">${l.text}</p>`).join('');
+  logEl.scrollTop=logEl.scrollHeight;
+}
+
+function animateSearch(result,startNode){
+  nodeColors={};
+  activeEdges={};
+  nodeColors[startNode]='#EF9F27';
+  if(animationTimer) clearTimeout(animationTimer);
+  switchTab('visual');
+  const frames=result.animFrames;
+  const statusEl=document.getElementById('anim-status');
+  let i=0;
+  function nextFrame(){
+    if(i>=frames.length){
+      if(result.found) nodeColors[result.found]='#1D9E75';
+      drawNetwork();
+      statusEl.textContent=result.found?`✓ Recurso encontrado em ${result.found} — ${result.msgs} mensagens trocadas`:`✗ Busca encerrada — recurso não encontrado — ${result.msgs} mensagens`;
+      return;
+    }
+    const f=frames[i];
+    if(f.edge) activeEdges[f.edge]=true;
+    if(f.type==='visit') nodeColors[f.node]='#D85A30';
+    if(f.type==='found') nodeColors[f.node]='#1D9E75';
+    drawNetwork();
+    statusEl.textContent=`Visitando ${f.node}... (msg ${i+1}/${frames.length})`;
+    i++;
+    animationTimer=setTimeout(nextFrame,420);
+  }
+  drawNetwork();
+  statusEl.textContent='Animando busca...';
+  setTimeout(nextFrame,400);
+}
+
+function replayAnimation(){
+  if(lastSearchResult) animateSearch(lastSearchResult,lastSearchStart||Object.keys(network.nodes)[0]);
+  else alert('Nenhuma busca realizada ainda. Execute uma busca na aba Busca primeiro.');
+}
+
+function resetVisual(){
+  nodeColors={}; activeEdges={};
+  drawNetwork();
+  document.getElementById('anim-status').textContent='';
+}
+
+// ========== COMPARE ==========
+function populateCompareSelects(){
+  if(!network) return;
+  const ids=Object.keys(network.nodes);
+  const allRes=[...new Set(ids.flatMap(id=>network.nodes[id].resources))].sort();
+  document.getElementById('c-node').innerHTML=ids.map(n=>`<option>${n}</option>`).join('');
+  document.getElementById('c-resource').innerHTML=allRes.map(r=>`<option>${r}</option>`).join('');
+}
+
+function runAllAlgos(){
+  if(!network) return;
+  switchTab('compare');
+  document.getElementById('compare-area').style.display='block';
+  document.getElementById('no-net-compare').style.display='none';
+  populateCompareSelects();
+  document.getElementById('c-node').value=document.getElementById('s-node').value;
+  document.getElementById('c-resource').value=document.getElementById('s-resource').value;
+  document.getElementById('c-ttl').value=document.getElementById('s-ttl').value;
+  runComparison();
+}
+
+let compareHistory=[];
+
+function runComparison(){
+  if(!network) return;
+  const nodeId=document.getElementById('c-node').value;
+  const resId=document.getElementById('c-resource').value;
+  const ttl=parseInt(document.getElementById('c-ttl').value)||6;
+  const algoNames=['flooding','informed_flooding','random_walk','informed_random_walk'];
+  const labels={flooding:'Flooding',informed_flooding:'Informed Flooding',random_walk:'Random Walk',informed_random_walk:'Informed Random Walk'};
+  const results={};
+  for(const a of algoNames) results[a]=ALGOS[a](network,nodeId,resId,ttl);
+  document.getElementById('compare-results').style.display='block';
+  const maxMsgs=Math.max(...algoNames.map(a=>results[a].msgs),1);
+  const maxNodes=Math.max(...algoNames.map(a=>results[a].visitedNodes),1);
+  const colors=['#378ADD','#1D9E75','#EF9F27','#D85A30'];
+  document.getElementById('compare-tbody').innerHTML=algoNames.map((algo,i)=>{
+    const r=results[algo];
+    const badge=r.found?'<span class="badge badge-green">✓ sim</span>':'<span class="badge badge-red">✗ não</span>';
+    const pct=Math.round(r.msgs/maxMsgs*100);
+    const pct2=Math.round(r.visitedNodes/maxNodes*100);
+    return `<tr>
+      <td><strong>${labels[algo]}</strong></td>
+      <td>${r.msgs}<div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${colors[i]}"></div></div></td>
+      <td>${r.visitedNodes}<div class="bar-bg"><div class="bar-fill" style="width:${pct2}%;background:${colors[i]}80"></div></div></td>
+      <td>${badge}</td>
+      <td>${r.found||'—'}</td>
+    </tr>`;
+  }).join('');
+  drawCompareChart(results,algoNames,labels,colors);
+  // History
+  compareHistory.push({nodeId,resId,ttl,results,ts:new Date().toLocaleTimeString()});
+  if(compareHistory.length>1){
+    document.getElementById('compare-history-card').style.display='block';
+    document.getElementById('compare-history-list').innerHTML=compareHistory.slice(-5).reverse().map((h,i)=>`
+      <div style="border-bottom:1px solid #eee;padding:4px 0">
+        <strong>${h.ts}</strong> — origem: ${h.nodeId}, recurso: ${h.resId}, TTL: ${h.ttl} →
+        F:${h.results.flooding.msgs}msg | IF:${h.results.informed_flooding.msgs}msg | RW:${h.results.random_walk.msgs}msg | IRW:${h.results.informed_random_walk.msgs}msg
+      </div>`).join('');
+  }
+}
+
+function drawCompareChart(results,algoNames,labels,colors){
+  const canvas=document.getElementById('compare-chart');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+  const n=algoNames.length;
+  const padL=50,padR=20,padT=30,padB=60;
+  const chartW=W-padL-padR, chartH=H-padT-padB;
+  const groupW=chartW/n;
+  const barW=Math.min(40,groupW*0.35);
+  const maxMsgs=Math.max(...algoNames.map(a=>results[a].msgs),1);
+  const maxNodes=Math.max(...algoNames.map(a=>results[a].visitedNodes),1);
+  const maxY=Math.max(maxMsgs,maxNodes);
+  // Grid
+  for(let g=0;g<=4;g++){
+    const y=padT+chartH*(1-g/4);
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y);
+    ctx.strokeStyle='rgba(0,0,0,0.07)'; ctx.lineWidth=0.8; ctx.stroke();
+    ctx.fillStyle='#aaa'; ctx.font='11px sans-serif'; ctx.textAlign='right';
+    ctx.fillText(Math.round(maxY*g/4),padL-6,y+4);
+  }
+  // Bars
+  algoNames.forEach((algo,i)=>{
+    const r=results[algo];
+    const cx=padL+groupW*i+groupW/2;
+    // Msgs bar
+    const bh=(r.msgs/maxY)*chartH;
+    ctx.fillStyle=colors[i]+'cc';
+    ctx.fillRect(cx-barW-2,padT+chartH-bh,barW,bh);
+    ctx.fillStyle='#333'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center';
+    if(bh>14) ctx.fillText(r.msgs,cx-barW/2-2,padT+chartH-bh-5);
+    // Nodes bar
+    const bh2=(r.visitedNodes/maxY)*chartH;
+    ctx.fillStyle=colors[i]+'66';
+    ctx.fillRect(cx+2,padT+chartH-bh2,barW,bh2);
+    if(bh2>14) ctx.fillText(r.visitedNodes,cx+barW/2+2,padT+chartH-bh2-5);
+    // X label
+    ctx.fillStyle='#555'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+    const shortLbl=['Flooding','Inf.Flood','Rand.Walk','Inf.Walk'][i];
+    ctx.fillText(shortLbl,cx,H-padB+18);
+    // Found indicator
+    const fi=results[algo].found;
+    ctx.fillStyle=fi?'#27500a':'#a32d2d';
+    ctx.font='bold 13px sans-serif';
+    ctx.fillText(fi?'✓':'✗',cx,H-padB+34);
+  });
+  // Legend
+  ctx.fillStyle='#888'; ctx.font='11px sans-serif'; ctx.textAlign='left';
+  ctx.fillStyle=colors[0]+'cc'; ctx.fillRect(padL,padT-20,12,10);
+  ctx.fillStyle='#555'; ctx.fillText('mensagens trocadas',padL+16,padT-11);
+  ctx.fillStyle=colors[0]+'66'; ctx.fillRect(padL+150,padT-20,12,10);
+  ctx.fillStyle='#555'; ctx.fillText('nós visitados',padL+166,padT-11);
+  // Axis labels
+  ctx.save(); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='#999'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('quantidade',-(padT+chartH/2),14);
+  ctx.restore();
+}
+
+// Init
+loadExample('medium');
+</script>
+</body>
+</html>
