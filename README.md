@@ -1,5 +1,14 @@
 # Simulador de Busca em Redes P2P Não Estruturadas
 
+---
+
+## Autores
+* Brenno Damiany Castro Vidal - 2315088
+* Caio Victor Ferreira Da Silva - 2010224
+* Diego Henrique Santos Queiroz - 2315108
+
+Projeto desenvolvido para fins acadêmicos na disciplina de Redes de Computadores / Sistemas Distribuídos.
+
 ## Descrição
 
 Este projeto implementa um simulador visual de redes P2P (Peer-to-Peer) não estruturadas, permitindo criar, validar, visualizar e testar diferentes topologias de rede através de quatro algoritmos de busca.
@@ -316,11 +325,4 @@ Este projeto foi desenvolvido para demonstrar conceitos relacionados a:
 * Avaliação de desempenho de algoritmos de busca
 * Comparação de estratégias de comunicação em redes distribuídas
 
----
 
-## Autores
-* Brenno Damiany Castro Vidal - 2315088
-* Caio Victor Ferreira Da Silva - 2010224
-* Diego Henrique Santos Queiroz - 2315108
-
-Projeto desenvolvido para fins acadêmicos na disciplina de Redes de Computadores / Sistemas Distribuídos.
