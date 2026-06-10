@@ -1,4 +1,4 @@
-# Simulador de Busca em Redes P2P Não Estruturadas
+Simulador de Busca em Redes P2P Não Estruturadas
 
 ## Autores
 * Brenno Damiany Castro Vidal - 2315088
