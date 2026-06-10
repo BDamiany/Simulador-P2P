@@ -2,155 +2,25 @@
 
 ## Descrição
 
-Este projeto implementa um simulador visual de redes P2P (Peer-to-Peer) não estruturadas, permitindo a criação, validação e análise de diferentes topologias de rede e a execução de buscas por recursos utilizando múltiplos algoritmos.
+Este projeto implementa um simulador visual de redes P2P (Peer-to-Peer) não estruturadas, permitindo criar, validar, visualizar e testar diferentes topologias de rede através de quatro algoritmos de busca.
 
-O sistema foi desenvolvido como atividade acadêmica para estudo de algoritmos de busca distribuída em redes P2P, possibilitando comparar o desempenho de diferentes estratégias através de métricas como número de mensagens trocadas e quantidade de nós envolvidos na busca.
+O simulador foi desenvolvido em HTML, CSS e JavaScript puro, funcionando diretamente no navegador sem necessidade de instalação de dependências ou servidores externos.
 
----
-
-## Funcionalidades
-
-### Criação de Redes P2P
-
-* Leitura de arquivos de configuração em formato YAML simplificado.
-* Construção automática da topologia da rede.
-* Associação de recursos aos nós da rede.
-* Suporte a diferentes topologias.
-
-### Validação da Rede
-
-O sistema realiza automaticamente as seguintes verificações:
-
-* Rede não particionada (todos os nós devem ser alcançáveis).
-* Respeito aos limites mínimo e máximo de vizinhos.
-* Todos os nós devem possuir pelo menos um recurso.
-* Não são permitidas arestas ligando um nó a ele mesmo.
-* Consistência entre o valor de `num_nodes` e a quantidade de nós definidos.
-
-### Algoritmos de Busca
-
-O simulador implementa quatro algoritmos distintos:
-
-#### Flooding
-
-Propaga a busca para todos os vizinhos possíveis até que o TTL seja esgotado.
-
-Características:
-
-* Alta cobertura da rede.
-* Grande quantidade de mensagens.
-* Maior probabilidade de encontrar o recurso.
-
-#### Informed Flooding
-
-Versão otimizada do Flooding.
-
-Características:
-
-* Prioriza nós com maior quantidade de recursos.
-* Mantém alta taxa de sucesso.
-* Reduz buscas desnecessárias.
-
-#### Random Walk
-
-Encaminha a busca para apenas um vizinho por vez.
-
-Características:
-
-* Baixo custo em mensagens.
-* Menor cobertura.
-* Pode não encontrar o recurso dentro do TTL.
-
-#### Informed Random Walk
-
-Versão otimizada do Random Walk.
-
-Características:
-
-* Prioriza nós potencialmente mais relevantes.
-* Menor custo de comunicação.
-* Melhor eficiência que o Random Walk tradicional.
-
-### Visualização Gráfica
-
-* Representação visual da topologia da rede.
-* Exibição dos nós e conexões.
-* Destaque para nós visitados durante a busca.
-* Identificação do nó onde o recurso foi encontrado.
-
-### Animação das Buscas
-
-* Exibição em tempo real da propagação das mensagens.
-* Destaque dos caminhos percorridos.
-* Visualização do processo de descoberta do recurso.
-
-### Comparação de Algoritmos
-
-Execução automática dos quatro algoritmos para o mesmo cenário de busca.
-
-Métricas comparadas:
-
-* Número de mensagens trocadas.
-* Quantidade de nós visitados.
-* Sucesso ou falha da busca.
-* Nó onde o recurso foi localizado.
+O objetivo é demonstrar o comportamento de diferentes estratégias de busca distribuída e comparar sua eficiência através de métricas como número de mensagens trocadas e quantidade de nós envolvidos na busca.
 
 ---
 
-## Estrutura do Projeto
+# Funcionalidades
 
-```text
-p2p_simulator/
-│
-├── p2p_simulator.html
-│
-├── CSS
-│   ├── Layout da aplicação
-│   ├── Componentes visuais
-│   └── Estilos da animação
-│
-├── JavaScript
-│   ├── Parser YAML
-│   ├── Validação da rede
-│   ├── Algoritmos de busca
-│   ├── Renderização do grafo
-│   ├── Sistema de animação
-│   └── Comparação de algoritmos
-│
-└── Exemplos de topologias
-    ├── Small
-    ├── Medium
-    ├── Large
-    ├── Ring
-    └── Star
-```
+## Configuração da Rede
 
----
+O simulador permite criar uma rede P2P a partir de uma configuração em formato YAML simplificado contendo:
 
-## Como Executar
-
-### Método 1 (Recomendado)
-
-Basta abrir o arquivo:
-
-```text
-p2p_simulator.html
-```
-
-em qualquer navegador moderno.
-
-Exemplos:
-
-* Google Chrome
-* Mozilla Firefox
-* Microsoft Edge
-* Opera
-
-Nenhuma instalação adicional é necessária.
-
----
-
-## Arquivo de Configuração
+* Quantidade de nós (`num_nodes`)
+* Número mínimo de vizinhos (`min_neighbors`)
+* Número máximo de vizinhos (`max_neighbors`)
+* Recursos armazenados em cada nó
+* Conexões (arestas) entre os nós
 
 Exemplo:
 
@@ -178,87 +48,246 @@ edges:
 
 ---
 
-## Fluxo de Utilização
+## Exemplos Pré-Carregados
 
-### 1. Configuração
+O simulador disponibiliza exemplos prontos para testes:
 
-* Selecionar um exemplo pronto ou inserir uma configuração manualmente.
-* Clicar em **Carregar e Validar Rede**.
+* Small Network
+* Medium Network
+* Large Network
+* Ring Topology
+* Star Topology
 
-### 2. Busca
+Esses exemplos permitem analisar o comportamento dos algoritmos em diferentes estruturas de rede.
 
-Informar:
+---
 
-* Nó de origem.
-* Recurso desejado.
-* TTL.
-* Algoritmo.
+# Validação da Rede
 
-Em seguida clicar em:
+Após clicar em **Carregar e Validar Rede**, o sistema executa automaticamente as seguintes verificações:
+
+| Validação     | Descrição                                                   |
+| ------------- | ----------------------------------------------------------- |
+| Conectividade | Verifica se a rede não está particionada                    |
+| Grau mínimo   | Cada nó deve possuir pelo menos `min_neighbors` vizinhos    |
+| Grau máximo   | Cada nó não pode exceder `max_neighbors` vizinhos           |
+| Recursos      | Nenhum nó pode ficar sem recursos                           |
+| Self-loop     | Não são permitidas arestas de um nó para ele mesmo          |
+| Consistência  | `num_nodes` deve corresponder à quantidade de nós definidos |
+
+Caso alguma regra seja violada, o sistema exibe mensagens detalhadas de erro.
+
+---
+
+# Algoritmos de Busca
+
+O simulador implementa quatro algoritmos de busca distribuída.
+
+Todos recebem os seguintes parâmetros:
+
+* Nó de origem
+* Recurso desejado
+* TTL (Time To Live)
+* Algoritmo
+
+---
+
+## Flooding
+
+Propaga a busca para todos os vizinhos possíveis até o TTL ser esgotado.
+
+Características:
+
+* Alta cobertura da rede
+* Grande quantidade de mensagens
+* Alta probabilidade de localizar recursos
+
+---
+
+## Informed Flooding
+
+Variação do Flooding que utiliza uma estratégia de ordenação dos vizinhos antes da propagação.
+
+Características:
+
+* Mantém ampla cobertura
+* Exploração mais direcionada
+* Menor redundância em determinadas topologias
+
+---
+
+## Random Walk
+
+A busca segue apenas um caminho pela rede, escolhendo um vizinho por vez.
+
+Características:
+
+* Baixo custo de comunicação
+* Poucas mensagens
+* Pode não encontrar o recurso dentro do TTL
+
+---
+
+## Informed Random Walk
+
+Versão otimizada do Random Walk.
+
+Características:
+
+* Prioriza vizinhos considerados mais promissores
+* Mantém baixo custo de mensagens
+* Geralmente visita menos nós que o Flooding
+
+---
+
+# Execução da Busca
+
+Na aba **Busca**, o usuário pode:
+
+1. Selecionar o nó de origem.
+2. Escolher o recurso desejado.
+3. Definir o valor do TTL.
+4. Selecionar o algoritmo.
+5. Executar a busca.
+
+---
+
+# Resultados da Busca
+
+Após a execução, o simulador apresenta:
+
+* Algoritmo utilizado
+* Recurso buscado
+* Nó onde o recurso foi encontrado
+* Quantidade total de mensagens trocadas
+* Quantidade de nós envolvidos
+* Status da busca (sucesso ou falha)
+
+Também é exibido um log detalhado contendo todas as mensagens enviadas durante a execução.
+
+---
+
+# Visualização da Rede
+
+A aba **Visualização** apresenta uma representação gráfica da rede através de um grafo desenhado em Canvas.
+
+A visualização exibe:
+
+* Nós da rede
+* Conexões entre os nós
+* Recursos armazenados
+* Nós visitados durante a busca
+* Caminhos percorridos
+* Nó onde o recurso foi encontrado
+
+---
+
+# Animação das Buscas
+
+Após executar uma busca, o simulador pode reproduzir visualmente o percurso realizado pelo algoritmo.
+
+A animação mostra:
+
+* Ordem de visita dos nós
+* Mensagens enviadas
+* Propagação da busca
+* Momento em que o recurso é localizado
+
+Isso facilita a compreensão do comportamento de cada algoritmo.
+
+---
+
+# Comparação de Algoritmos
+
+A aba **Comparação** executa automaticamente os quatro algoritmos utilizando os mesmos parâmetros de busca.
+
+Os resultados são exibidos lado a lado para facilitar a análise.
+
+São comparados:
+
+* Flooding
+* Informed Flooding
+* Random Walk
+* Informed Random Walk
+
+---
+
+# Métricas Comparadas
+
+Para cada algoritmo são exibidos:
+
+* Recurso encontrado ou não
+* Número de mensagens trocadas
+* Quantidade de nós visitados
+* Nó onde o recurso foi localizado
+
+Além disso, o simulador gera gráficos comparativos para facilitar a análise visual do desempenho.
+
+---
+
+# Como Executar
+
+## Requisitos
+
+Qualquer navegador moderno:
+
+* Google Chrome
+* Mozilla Firefox
+* Microsoft Edge
+* Opera
+
+---
+
+## Execução
+
+Basta abrir o arquivo:
 
 ```text
-Executar Busca
+p2p_simulator.html
 ```
 
-### 3. Visualização
-
-Acompanhar:
-
-* Topologia da rede.
-* Nós visitados.
-* Caminhos percorridos.
-* Resultado da busca.
-
-### 4. Comparação
-
-Executar os quatro algoritmos simultaneamente para comparar desempenho.
+Não é necessário instalar bibliotecas, dependências ou configurar servidor.
 
 ---
 
-## Parâmetros da Busca
-
-| Parâmetro   | Descrição               |
-| ----------- | ----------------------- |
-| node_id     | Nó que inicia a busca   |
-| resource_id | Recurso procurado       |
-| ttl         | Limite máximo de saltos |
-| algo        | Algoritmo utilizado     |
-
-Valores válidos para `algo`:
+# Estrutura do Projeto
 
 ```text
-flooding
-informed_flooding
-random_walk
-informed_random_walk
+p2p_simulator/
+└── p2p_simulator.html
 ```
 
----
+O arquivo contém:
 
-## Métricas Coletadas
-
-Ao final de cada execução são apresentados:
-
-* Recurso encontrado ou não.
-* Nó onde o recurso foi localizado.
-* Número total de mensagens trocadas.
-* Quantidade de nós envolvidos na busca.
-* Registro detalhado das mensagens.
-
----
-
-## Comparativo dos Algoritmos
-
-| Algoritmo            | Mensagens | Cobertura | Eficiência |
-| -------------------- | --------- | --------- | ---------- |
-| Flooding             | Alta      | Alta      | Média      |
-| Informed Flooding    | Média     | Alta      | Alta       |
-| Random Walk          | Baixa     | Baixa     | Média      |
-| Informed Random Walk | Baixa     | Média     | Alta       |
+* Interface gráfica (HTML)
+* Estilos visuais (CSS)
+* Parser YAML
+* Validações da rede
+* Implementação dos algoritmos
+* Sistema de animação
+* Visualização gráfica
+* Comparação de desempenho
 
 ---
 
-## Tecnologias Utilizadas
+# Fluxo de Utilização
+
+1. Escolher uma topologia de exemplo ou criar uma configuração própria.
+2. Clicar em **Carregar e Validar Rede**.
+3. Abrir a aba **Busca**.
+4. Selecionar:
+
+   * Nó de origem
+   * Recurso
+   * TTL
+   * Algoritmo
+5. Executar a busca.
+6. Visualizar os resultados.
+7. Utilizar as abas **Visualização** e **Comparação** para analisar o comportamento dos algoritmos.
+
+---
+
+# Tecnologias Utilizadas
 
 * HTML5
 * CSS3
@@ -267,16 +296,17 @@ Ao final de cada execução são apresentados:
 
 ---
 
-## Objetivo Acadêmico
+# Objetivo Acadêmico
 
-O projeto foi desenvolvido para demonstrar conceitos relacionados a:
+Este projeto foi desenvolvido para demonstrar conceitos relacionados a:
 
-* Redes Peer-to-Peer (P2P).
-* Algoritmos distribuídos.
-* Busca em redes não estruturadas.
-* Flooding.
-* Random Walk.
-* Avaliação de desempenho de algoritmos distribuídos.
+* Redes Peer-to-Peer (P2P)
+* Redes não estruturadas
+* Algoritmos distribuídos
+* Flooding
+* Random Walk
+* Avaliação de desempenho de algoritmos de busca
+* Comparação de estratégias de comunicação em redes distribuídas
 
 ---
 
