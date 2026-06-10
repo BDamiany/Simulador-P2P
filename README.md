@@ -210,6 +210,13 @@ São comparados:
 * Random Walk
 * Informed Random Walk
 
+  Comparativo dos Algoritmos
+Algoritmo	Mensagens	Cobertura	Eficiência
+Flooding	Alta	Alta	Média
+Informed Flooding	Média	Alta	Alta
+Random Walk	Baixa	Baixa	Média
+Informed Random Walk	Baixa	Média	Alta
+
 ---
 
 # Métricas Comparadas
