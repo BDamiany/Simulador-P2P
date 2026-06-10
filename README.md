@@ -281,7 +281,8 @@ O projeto foi desenvolvido para demonstrar conceitos relacionados a:
 ---
 
 ## Autores
-Brenno Damiany Castro Vidal - 2315088
-Caio Victor Ferreira Da Silva - 2010224
-Diego Henrique Santos Queiroz - 2315108
+* Brenno Damiany Castro Vidal - 2315088
+* Caio Victor Ferreira Da Silva - 2010224
+* Diego Henrique Santos Queiroz - 2315108
+
 Projeto desenvolvido para fins acadêmicos na disciplina de Redes de Computadores / Sistemas Distribuídos.
