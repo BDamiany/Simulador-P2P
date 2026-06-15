@@ -172,6 +172,25 @@ Após a execução, o simulador apresenta:
 
 Também é exibido um log detalhado contendo todas as mensagens enviadas durante a execução.
 
+
+# Contagem de Mensagens
+
+uma busca só é considerada concluída quando a localização do recurso é informada ao nó que iniciou a busca.
+
+Dessa forma, a métrica **mensagens trocadas** contabiliza:
+
+* Mensagens de consulta
+* Mensagens de resposta (retorno ao nó de origem)
+
+Exemplo:
+
+```text
+n1 → n2 (consulta)
+n2 → n1 (resposta)
+
+Total: 2 mensagens
+```
+
 ---
 
 # Visualização da Rede
@@ -196,11 +215,35 @@ Após executar uma busca, o simulador pode reproduzir visualmente o percurso rea
 A animação mostra:
 
 * Ordem de visita dos nós
-* Mensagens enviadas
+* Mensagens de consulta
 * Propagação da busca
 * Momento em que o recurso é localizado
+* Caminho de retorno da resposta até o nó de origem
 
 Isso facilita a compreensão do comportamento de cada algoritmo.
+
+
+## Legenda da Visualização
+
+| Cor | Significado |
+|------|------------|
+| Azul | Nó normal |
+| Amarelo | Nó de origem da busca |
+| Laranja | Nó visitado durante a consulta |
+| Verde | Nó onde o recurso foi encontrado |
+| Roxo | Caminho de retorno da resposta |
+| Cinza | Nó não visitado |
+
+---
+
+
+## Observação sobre Propagação e Encerramento
+
+Para evitar comportamento artificialmente “otimizado”, os algoritmos de **Flooding** e **Informed Flooding** não interrompem imediatamente a propagação da consulta quando o recurso é localizado.
+
+Isso significa que, se uma consulta já foi propagada para outros nós dentro do TTL, esses nós continuam sendo processados até que a fila de propagação seja esgotada. Após essa etapa, a resposta retorna pelo caminho registrado até o nó que iniciou a busca.
+
+Nos algoritmos **Random Walk** e **Informed Random Walk**, a busca segue apenas um caminho por vez. Portanto, quando o recurso é localizado, não existem ramos paralelos a continuar; o algoritmo apenas executa o retorno da resposta ao nó de origem.
 
 ---
 
@@ -323,4 +366,14 @@ Este projeto foi desenvolvido para demonstrar conceitos relacionados a:
 * Avaliação de desempenho de algoritmos de busca
 * Comparação de estratégias de comunicação em redes distribuídas
 
+
+
+
+## Atualizações e Revisões
+
+### Revisão de Junho/2026
+- Ajustada a lógica de Flooding e Informed Flooding para que os nós já enfileirados continuem sendo processados mesmo após a localização inicial do recurso.
+- Corrigido o comportamento de encerramento prematuro nas buscas por inundação, evitando que a simulação pare artificialmente assim que o recurso é localizado.
+- Ajustada a animação do Random Walk e Informed Random Walk para representar o retorno da informação de sucesso ao longo do caminho percorrido, evitando a impressão de que nós intermediários “sabem” instantaneamente que o recurso foi encontrado.
+- Revisão geral dos logs exibidos ao usuário para melhorar a rastreabilidade das mensagens trocadas entre os nós.
 
